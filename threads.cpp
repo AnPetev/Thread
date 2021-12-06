@@ -1,28 +1,37 @@
 ﻿#include <stdio.h>
 #include <pthread.h>
 #include <stdlib.h>
+struct map_argument {
+    void** things;
+    void** results;
+    void* (*f)(void*);
+    int from;
+    int to;
+}; 
+void** concurrent_map(void** things, void* (*f)(void*), int length,
+    int nthreads) {
+
+    void** results = malloc(sizeof(void*) * length);
+    struct map_argument arguments[nthreads];
+    pthread_t threads[nthreads];
+    int chunk_size = length / nthreads;
+
+    for (int j = 0; j < nthreads; j++) {
+        int from = j * chunk_size;
+        struct map_argument* argument = &arguments[j];
+        init_map_argument(argument, things, results, f, from, from + chunk_size);
+        pthread_create(&threads[j], NULL, chunk_map, (void*)argument);
+    }
 
 
-#define N
-void* result;
+    for (int i = 0; i < length % nthreads; i++) {
+        int idx = chunk_size * nthreads + i;
+        results[idx] = (*f)(things[idx]);
+    }
 
-void* reduce(void* (function_p)(void*), void* data_p) {
-	pthread_t threads[N];
-	for (int i = 0; i < N; ++i) {
-		pthread_t p;
-		pthread_create(&p, NULL, function_p, data_p + i * N);
-		threads[i] = p;
-	}
+    for (int k = 0; k < nthreads; k++) {
+        pthread_join(threads[k], NULL);
+    }
 
-	for (int i = 0; i < N; ++i) {
-		pthread_join(threads[i], NULL);
-	}
-	return finction_p(result);
+    return results;
 }
-void function_p(void* arr) {
-	int v = 0;
-	for (int i = 0; i < N; ++i) {
-		v += arr[i];
-		{
-		}
-		return;
