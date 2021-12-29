@@ -1,28 +1,17 @@
 #include <stdio.h>
-#include <pthread.h>
 #include <stdlib.h>
 
-
-#define N
-void* result;
-
-void* reduce(void*(function_p)(void*),void* data_p){
-pthread_t threads[N];
-for(int i=0;i<N;++i){
-pthread_t p;
-pthread_create(&p,NULL,function_p,data_p + i*N);
-threads[i] = p;
-}
-
-for(int i=0;i<N;++i){
-pthread_join(threads[i],NULL);
-}
-return finction_p(result);
-}
-void function_p(void* arr){
-int v=0;
-for(int i=0;i<N;++i){
-v+=arr[i];
+int main(int argc, char *argv[])
 {
+	int n = atoi(argv[1]);
+	FILE *files[n];
+	for(int i = 1; i <= n; i++)
+	{
+		char name[12];
+		sprintf(name, "Result_%d.txt", i);
+		files[i] = fopen(name, "w");
+		fprintf(*(files + i), "Hello, World %d\n", i);
+		fclose(*(files + i));
+	}
+	return 0;
 }
-return;
